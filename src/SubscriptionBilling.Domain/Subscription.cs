@@ -17,6 +17,7 @@ public class Subscription
 
     public static Subscription StartTrial(Guid planId, int trialDays, DateTime now)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(trialDays);
         return new Subscription(planId, SubscriptionStatus.Trial, now.AddDays(trialDays));
     }
 }

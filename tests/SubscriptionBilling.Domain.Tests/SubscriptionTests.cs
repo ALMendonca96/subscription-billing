@@ -14,4 +14,12 @@ public class SubscriptionTests
         Assert.Equal(planId, subscription.PlanId);
         Assert.Equal(Now.AddDays(14), subscription.TrialEndsAt);
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public void StartTrial_with_invalid_days_throws(int trialDays)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Subscription.StartTrial(Guid.NewGuid(), trialDays, Now));
+    }
 }
