@@ -7,6 +7,7 @@ public class Subscription
     public SubscriptionStatus Status { get; private set; }
     public DateTime TrialEndsAt { get; private set; }
     public DateTime? CurrentPeriodEndsAt { get; private set; }
+    public DateTime? GracePeriodEndsAt { get; private set; }
 
     private Subscription(Guid planId, SubscriptionStatus status, DateTime trialEndsAt)
     {
@@ -43,5 +44,11 @@ public class Subscription
 
         Status = SubscriptionStatus.Active;
         CurrentPeriodEndsAt = periodEndsAt;
+    }
+
+    public void MarkOverdue(DateTime now, int graceDays)
+    {
+        Status = SubscriptionStatus.PastDue;
+        GracePeriodEndsAt = now.AddDays(graceDays);
     }
 }

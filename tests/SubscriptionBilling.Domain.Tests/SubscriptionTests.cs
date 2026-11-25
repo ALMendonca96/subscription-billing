@@ -78,6 +78,19 @@ public class SubscriptionTests
         var ex = Assert.Throws<InvalidSubscriptionTransitionException>(
             () => subscription.ConfirmPayment(Now.AddMonths(1)));
 
+        Assert.Equal(SubscriptionStatus.Trial, ex.CurrentStatus);
         Assert.Equal("Cannot ConfirmPayment when subscription is Trial.", ex.Message);
+    }
+
+    [Fact]
+    public void MarkOverdue_from_Active_moves_to_PastDue_and_sets_grace_end()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+        subscription.ConfirmPayment(periodEndsAt: Now.AddMonths(1));
+        subscription.MarkOverdue(Now, graceDays: 3);
+
+        Assert.Equal(SubscriptionStatus.PastDue, subscription.Status);
+        Assert.Equal(Now.AddDays(3), subscription.GracePeriodEndsAt);
     }
 }
