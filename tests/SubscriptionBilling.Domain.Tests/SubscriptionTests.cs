@@ -1,3 +1,5 @@
+using SubscriptionBilling.Domain.Subscriptions;
+
 namespace SubscriptionBilling.Domain.Tests;
 
 public class SubscriptionTests
@@ -21,5 +23,26 @@ public class SubscriptionTests
     public void StartTrial_with_invalid_days_throws(int trialDays)
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => Subscription.StartTrial(Guid.NewGuid(), trialDays, Now));
+    }
+
+    [Fact]
+    public void RequestCheckout_from_Trial_moves_to_PendingPayment()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+
+        Assert.Equal(SubscriptionStatus.PendingPayment, subscription.Status);
+    }
+
+    [Fact]
+    public void RequestCheckout_when_already_PendingPayment_throws()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+
+        var ex = Assert.Throws<InvalidSubscriptionTransitionException>(subscription.RequestCheckout);
+
+        Assert.Equal(SubscriptionStatus.PendingPayment, ex.CurrentStatus);
+        Assert.Equal("Cannot RequestCheckout when subscription is PendingPayment.", ex.Message);
     }
 }

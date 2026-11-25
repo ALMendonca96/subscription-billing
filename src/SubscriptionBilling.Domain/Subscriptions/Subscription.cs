@@ -1,4 +1,4 @@
-namespace SubscriptionBilling.Domain;
+namespace SubscriptionBilling.Domain.Subscriptions;
 
 public class Subscription
 {
@@ -19,5 +19,15 @@ public class Subscription
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(trialDays);
         return new Subscription(planId, SubscriptionStatus.Trial, now.AddDays(trialDays));
+    }
+
+    public void RequestCheckout()
+    {
+        if (Status != SubscriptionStatus.Trial)
+        {
+            throw new InvalidSubscriptionTransitionException(Status, nameof(RequestCheckout));
+        }
+
+        Status = SubscriptionStatus.PendingPayment;
     }
 }

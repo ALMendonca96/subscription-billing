@@ -1,4 +1,4 @@
-namespace SubscriptionBilling.Domain;
+namespace SubscriptionBilling.Domain.Subscriptions;
 
 public enum SubscriptionStatus
 {
