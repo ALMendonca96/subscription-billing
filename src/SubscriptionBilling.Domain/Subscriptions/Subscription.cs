@@ -6,6 +6,7 @@ public class Subscription
     public Guid PlanId;
     public SubscriptionStatus Status { get; private set; }
     public DateTime TrialEndsAt { get; private set; }
+    public DateTime? CurrentPeriodEndsAt = null;
 
     private Subscription(Guid planId, SubscriptionStatus status, DateTime trialEndsAt)
     {
@@ -29,5 +30,18 @@ public class Subscription
         }
 
         Status = SubscriptionStatus.PendingPayment;
+    }
+
+    public void ConfirmPayment(DateTime periodEndsAt)
+    {
+        if (Status == SubscriptionStatus.Active && CurrentPeriodEndsAt == periodEndsAt) return;
+
+        if (Status != SubscriptionStatus.PendingPayment)
+        {
+            throw new InvalidSubscriptionTransitionException(Status, nameof(RequestCheckout));
+        }
+
+        Status = SubscriptionStatus.Active;
+        CurrentPeriodEndsAt = periodEndsAt;
     }
 }

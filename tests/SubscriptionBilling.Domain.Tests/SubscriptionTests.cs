@@ -50,5 +50,32 @@ public class SubscriptionTests
     public void ConfirmPayment_from_PendingPayment_moves_to_Active()
     {
         var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+        var periodEndsAt = Now.AddMonths(1);
+        subscription.ConfirmPayment(periodEndsAt);
+
+        Assert.Equal(SubscriptionStatus.Active, subscription.Status);
+        Assert.Equal(periodEndsAt, subscription.CurrentPeriodEndsAt);
+    }
+
+    [Fact]
+    public void ConfirmPayment_twice_form_same_period_is_ignored()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+        var periodEndsAt = Now.AddMonths(1);
+        subscription.ConfirmPayment(periodEndsAt);
+        subscription.ConfirmPayment(periodEndsAt);
+
+        Assert.Equal(SubscriptionStatus.Active, subscription.Status);
+        Assert.Equal(periodEndsAt, subscription.CurrentPeriodEndsAt);
+    }
+
+    [Fact]
+    public void ConfirmPayment_from_Trial_throws()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        Assert.Throws<InvalidSubscriptionTransitionException>(
+            () => subscription.ConfirmPayment(Now.AddMonths(1)));
     }
 }
