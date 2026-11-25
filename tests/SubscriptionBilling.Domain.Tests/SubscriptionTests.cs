@@ -45,4 +45,10 @@ public class SubscriptionTests
         Assert.Equal(SubscriptionStatus.PendingPayment, ex.CurrentStatus);
         Assert.Equal("Cannot RequestCheckout when subscription is PendingPayment.", ex.Message);
     }
+
+    [Fact]
+    public void ConfirmPayment_from_PendingPayment_moves_to_Active()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+    }
 }
