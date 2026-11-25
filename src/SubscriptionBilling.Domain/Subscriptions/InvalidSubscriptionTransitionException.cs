@@ -4,5 +4,5 @@ public class InvalidSubscriptionTransitionException(SubscriptionStatus currentSt
   Exception($"Cannot {action} when subscription is {currentStatus}.")
 {
     public SubscriptionStatus CurrentStatus { get; } = currentStatus;
-    public string Aciton { get; } = action;
+    public string Action { get; } = action;
 }

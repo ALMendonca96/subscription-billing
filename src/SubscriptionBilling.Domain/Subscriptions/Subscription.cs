@@ -2,11 +2,11 @@ namespace SubscriptionBilling.Domain.Subscriptions;
 
 public class Subscription
 {
-    public Guid Id;
-    public Guid PlanId;
+    public Guid Id { get; private set; }
+    public Guid PlanId { get; private set; }
     public SubscriptionStatus Status { get; private set; }
     public DateTime TrialEndsAt { get; private set; }
-    public DateTime? CurrentPeriodEndsAt = null;
+    public DateTime? CurrentPeriodEndsAt;
 
     private Subscription(Guid planId, SubscriptionStatus status, DateTime trialEndsAt)
     {
@@ -38,7 +38,7 @@ public class Subscription
 
         if (Status != SubscriptionStatus.PendingPayment)
         {
-            throw new InvalidSubscriptionTransitionException(Status, nameof(RequestCheckout));
+            throw new InvalidSubscriptionTransitionException(Status, nameof(ConfirmPayment));
         }
 
         Status = SubscriptionStatus.Active;

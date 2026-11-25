@@ -59,7 +59,7 @@ public class SubscriptionTests
     }
 
     [Fact]
-    public void ConfirmPayment_twice_form_same_period_is_ignored()
+    public void ConfirmPayment_twice_for_same_period_is_ignored()
     {
         var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
         subscription.RequestCheckout();
@@ -75,7 +75,9 @@ public class SubscriptionTests
     public void ConfirmPayment_from_Trial_throws()
     {
         var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
-        Assert.Throws<InvalidSubscriptionTransitionException>(
+        var ex = Assert.Throws<InvalidSubscriptionTransitionException>(
             () => subscription.ConfirmPayment(Now.AddMonths(1)));
+
+        Assert.Equal("Cannot ConfirmPayment when subscription is Trial.", ex.Message);
     }
 }
