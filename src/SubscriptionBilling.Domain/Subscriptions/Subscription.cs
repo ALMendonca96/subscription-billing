@@ -6,7 +6,7 @@ public class Subscription
     public Guid PlanId { get; private set; }
     public SubscriptionStatus Status { get; private set; }
     public DateTime TrialEndsAt { get; private set; }
-    public DateTime? CurrentPeriodEndsAt;
+    public DateTime? CurrentPeriodEndsAt { get; private set; }
 
     private Subscription(Guid planId, SubscriptionStatus status, DateTime trialEndsAt)
     {
