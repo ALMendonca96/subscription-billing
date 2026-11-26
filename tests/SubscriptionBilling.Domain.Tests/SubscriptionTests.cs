@@ -93,4 +93,14 @@ public class SubscriptionTests
         Assert.Equal(SubscriptionStatus.PastDue, subscription.Status);
         Assert.Equal(Now.AddDays(3), subscription.GracePeriodEndsAt);
     }
+
+    [Theory]
+    [InlineData(-1)]
+    public void MarkOverdue_with_invalid_grace_days_throws(int graceDays)
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+        subscription.ConfirmPayment(periodEndsAt: Now.AddMonths(1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => subscription.MarkOverdue(Now, graceDays));
+    }
 }
