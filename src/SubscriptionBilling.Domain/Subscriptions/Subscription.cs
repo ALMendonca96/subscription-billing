@@ -49,6 +49,9 @@ public class Subscription
     public void MarkOverdue(DateTime now, int graceDays)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(graceDays);
+
+        if (Status == SubscriptionStatus.PastDue) return;
+
         Status = SubscriptionStatus.PastDue;
         GracePeriodEndsAt = now.AddDays(graceDays);
     }

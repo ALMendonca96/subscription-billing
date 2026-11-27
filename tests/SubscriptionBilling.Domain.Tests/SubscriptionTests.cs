@@ -95,6 +95,7 @@ public class SubscriptionTests
     }
 
     [Theory]
+    [InlineData(0)]
     [InlineData(-1)]
     public void MarkOverdue_with_invalid_grace_days_throws(int graceDays)
     {
@@ -102,5 +103,18 @@ public class SubscriptionTests
         subscription.RequestCheckout();
         subscription.ConfirmPayment(periodEndsAt: Now.AddMonths(1));
         Assert.Throws<ArgumentOutOfRangeException>(() => subscription.MarkOverdue(Now, graceDays));
+    }
+
+    [Fact]
+    public void MarkOverdue_when_already_PastDue_does_not_extend_grace()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+        subscription.ConfirmPayment(Now.AddMonths(1));
+        subscription.MarkOverdue(Now, 3);
+        subscription.MarkOverdue(Now.AddDays(1), 3);
+
+        Assert.Equal(SubscriptionStatus.PastDue, subscription.Status);
+        Assert.Equal(Now.AddDays(3), subscription.GracePeriodEndsAt);
     }
 }
