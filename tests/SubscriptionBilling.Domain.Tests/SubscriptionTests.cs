@@ -5,12 +5,13 @@ namespace SubscriptionBilling.Domain.Tests;
 public class SubscriptionTests
 {
     private static readonly DateTime Now = new(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime PeriodEndsAt = Now.AddMonths(1);
 
     private static Subscription CreateActive()
     {
         var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
         subscription.RequestCheckout();
-        subscription.ConfirmPayment(Now.AddMonths(1));
+        subscription.ConfirmPayment(PeriodEndsAt);
         return subscription;
     }
 
@@ -63,11 +64,10 @@ public class SubscriptionTests
     {
         var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
         subscription.RequestCheckout();
-        var periodEndsAt = Now.AddMonths(1);
-        subscription.ConfirmPayment(periodEndsAt);
+        subscription.ConfirmPayment(PeriodEndsAt);
 
         Assert.Equal(SubscriptionStatus.Active, subscription.Status);
-        Assert.Equal(periodEndsAt, subscription.CurrentPeriodEndsAt);
+        Assert.Equal(PeriodEndsAt, subscription.CurrentPeriodEndsAt);
     }
 
     [Fact]
@@ -75,12 +75,11 @@ public class SubscriptionTests
     {
         var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
         subscription.RequestCheckout();
-        var periodEndsAt = Now.AddMonths(1);
-        subscription.ConfirmPayment(periodEndsAt);
-        subscription.ConfirmPayment(periodEndsAt);
+        subscription.ConfirmPayment(PeriodEndsAt);
+        subscription.ConfirmPayment(PeriodEndsAt);
 
         Assert.Equal(SubscriptionStatus.Active, subscription.Status);
-        Assert.Equal(periodEndsAt, subscription.CurrentPeriodEndsAt);
+        Assert.Equal(PeriodEndsAt, subscription.CurrentPeriodEndsAt);
     }
 
     [Fact]
@@ -155,5 +154,14 @@ public class SubscriptionTests
         Assert.Equal(SubscriptionStatus.Cancelled, subscription.Status);
         Assert.Equal(Now, subscription.CancelledAt);
         Assert.Equal(CancellationReason.MissingFeatures, subscription.CancellationReason);
+    }
+
+    [Fact]
+    public void Cancel_keeps_CurrentPeriodEndsAt()
+    {
+        var subscription = CreateActive();
+        subscription.Cancel(CancellationReason.MissingFeatures, Now);
+
+        Assert.Equal(PeriodEndsAt, subscription.CurrentPeriodEndsAt);
     }
 }
