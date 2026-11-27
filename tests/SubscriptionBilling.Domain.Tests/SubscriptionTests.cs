@@ -6,6 +6,21 @@ public class SubscriptionTests
 {
     private static readonly DateTime Now = new(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc);
 
+    public static Subscription CreateActive()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+        subscription.ConfirmPayment(Now.AddMonths(1));
+        return subscription;
+    }
+
+    public static Subscription CreatePendingPayment()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+        return subscription;
+    }
+
     [Fact]
     public void StartTrial_sets_status_to_Trial_and_trial_end_date()
     {
@@ -28,8 +43,7 @@ public class SubscriptionTests
     [Fact]
     public void RequestCheckout_from_Trial_moves_to_PendingPayment()
     {
-        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
-        subscription.RequestCheckout();
+        var subscription = CreatePendingPayment();
 
         Assert.Equal(SubscriptionStatus.PendingPayment, subscription.Status);
     }
@@ -37,9 +51,7 @@ public class SubscriptionTests
     [Fact]
     public void RequestCheckout_when_already_PendingPayment_throws()
     {
-        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
-        subscription.RequestCheckout();
-
+        var subscription = CreatePendingPayment();
         var ex = Assert.Throws<InvalidSubscriptionTransitionException>(subscription.RequestCheckout);
 
         Assert.Equal(SubscriptionStatus.PendingPayment, ex.CurrentStatus);
@@ -85,9 +97,7 @@ public class SubscriptionTests
     [Fact]
     public void MarkOverdue_from_Active_moves_to_PastDue_and_sets_grace_end()
     {
-        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
-        subscription.RequestCheckout();
-        subscription.ConfirmPayment(periodEndsAt: Now.AddMonths(1));
+        var subscription = CreateActive();
         subscription.MarkOverdue(Now, graceDays: 3);
 
         Assert.Equal(SubscriptionStatus.PastDue, subscription.Status);
@@ -99,18 +109,14 @@ public class SubscriptionTests
     [InlineData(-1)]
     public void MarkOverdue_with_invalid_grace_days_throws(int graceDays)
     {
-        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
-        subscription.RequestCheckout();
-        subscription.ConfirmPayment(periodEndsAt: Now.AddMonths(1));
+        var subscription = CreateActive();
         Assert.Throws<ArgumentOutOfRangeException>(() => subscription.MarkOverdue(Now, graceDays));
     }
 
     [Fact]
     public void MarkOverdue_when_already_PastDue_does_not_extend_grace()
     {
-        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
-        subscription.RequestCheckout();
-        subscription.ConfirmPayment(Now.AddMonths(1));
+        var subscription = CreateActive();
         subscription.MarkOverdue(Now, 3);
         subscription.MarkOverdue(Now.AddDays(1), 3);
 
@@ -132,8 +138,7 @@ public class SubscriptionTests
     [Fact]
     public void MarkOverdue_from_PendingPayment_throws()
     {
-        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
-        subscription.RequestCheckout();
+        var subscription = CreatePendingPayment();
         var ex = Assert.Throws<InvalidSubscriptionTransitionException>(
             () => subscription.MarkOverdue(Now, 3));
 
