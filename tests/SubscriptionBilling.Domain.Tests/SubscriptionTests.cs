@@ -6,7 +6,7 @@ public class SubscriptionTests
 {
     private static readonly DateTime Now = new(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc);
 
-    public static Subscription CreateActive()
+    private static Subscription CreateActive()
     {
         var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
         subscription.RequestCheckout();
@@ -14,7 +14,7 @@ public class SubscriptionTests
         return subscription;
     }
 
-    public static Subscription CreatePendingPayment()
+    private static Subscription CreatePendingPayment()
     {
         var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
         subscription.RequestCheckout();
@@ -144,5 +144,16 @@ public class SubscriptionTests
 
         Assert.Equal(SubscriptionStatus.PendingPayment, ex.CurrentStatus);
         Assert.Equal("Cannot MarkOverdue when subscription is PendingPayment.", ex.Message);
+    }
+
+    [Fact]
+    public void Cancel_from_Active_moves_to_Cancelled_and_records_reason_and_date()
+    {
+        var subscription = CreateActive();
+        subscription.Cancel(CancellationReason.MissingFeatures, Now);
+
+        Assert.Equal(SubscriptionStatus.Cancelled, subscription.Status);
+        Assert.Equal(Now, subscription.CancelledAt);
+        Assert.Equal(CancellationReason.MissingFeatures, subscription.CancellationReason);
     }
 }

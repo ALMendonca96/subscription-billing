@@ -8,6 +8,8 @@ public class Subscription
     public DateTime TrialEndsAt { get; private set; }
     public DateTime? CurrentPeriodEndsAt { get; private set; }
     public DateTime? GracePeriodEndsAt { get; private set; }
+    public DateTime? CancelledAt { get; private set; }
+    public CancellationReason? CancellationReason { get; private set; }
 
     private Subscription(Guid planId, SubscriptionStatus status, DateTime trialEndsAt)
     {
@@ -59,5 +61,12 @@ public class Subscription
 
         Status = SubscriptionStatus.PastDue;
         GracePeriodEndsAt = now.AddDays(graceDays);
+    }
+
+    public void Cancel(CancellationReason cancellationReason, DateTime now)
+    {
+        Status = SubscriptionStatus.Cancelled;
+        CancelledAt = now;
+        CancellationReason = cancellationReason;
     }
 }
