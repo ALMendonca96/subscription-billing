@@ -65,6 +65,8 @@ public class Subscription
 
     public void Cancel(CancellationReason cancellationReason, DateTime now)
     {
+        if (Status == SubscriptionStatus.Cancelled) return;
+
         Status = SubscriptionStatus.Cancelled;
         CancelledAt = now;
         CancellationReason = cancellationReason;

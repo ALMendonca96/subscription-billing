@@ -164,4 +164,15 @@ public class SubscriptionTests
 
         Assert.Equal(PeriodEndsAt, subscription.CurrentPeriodEndsAt);
     }
+
+    [Fact]
+    public void Cancel_twice_keeps_first_reason_and_date()
+    {
+        var subscription = CreateActive();
+        subscription.Cancel(CancellationReason.MissingFeatures, Now);
+        subscription.Cancel(CancellationReason.NotUsing, Now.AddDays(5));
+
+        Assert.Equal(Now, subscription.CancelledAt);
+        Assert.Equal(CancellationReason.MissingFeatures, subscription.CancellationReason);
+    }
 }
