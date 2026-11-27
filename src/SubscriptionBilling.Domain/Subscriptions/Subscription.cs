@@ -52,6 +52,11 @@ public class Subscription
 
         if (Status == SubscriptionStatus.PastDue) return;
 
+        if (Status != SubscriptionStatus.Active)
+        {
+            throw new InvalidSubscriptionTransitionException(Status, nameof(MarkOverdue));
+        }
+
         Status = SubscriptionStatus.PastDue;
         GracePeriodEndsAt = now.AddDays(graceDays);
     }
