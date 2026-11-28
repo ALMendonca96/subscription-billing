@@ -22,6 +22,13 @@ public class SubscriptionTests
         return subscription;
     }
 
+    private static Subscription CreatePastDue()
+    {
+        var subscription = CreateActive();
+        subscription.MarkOverdue(Now, 3);
+        return subscription;
+    }
+
     [Fact]
     public void StartTrial_sets_status_to_Trial_and_trial_end_date()
     {
@@ -174,5 +181,32 @@ public class SubscriptionTests
 
         Assert.Equal(Now, subscription.CancelledAt);
         Assert.Equal(CancellationReason.MissingFeatures, subscription.CancellationReason);
+    }
+
+    [Fact]
+    public void Cancel_from_Trial_transitions_to_Cancelled()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.Cancel(CancellationReason.TooExpensive, Now);
+
+        Assert.Equal(SubscriptionStatus.Cancelled, subscription.Status);
+    }
+
+    [Fact]
+    public void Cancel_from_PendingPayment_transitions_to_Cancelled()
+    {
+        var subscription = Subscription.StartTrial(Guid.NewGuid(), 14, Now);
+        subscription.RequestCheckout();
+        subscription.Cancel(CancellationReason.TooExpensive, Now);
+
+        Assert.Equal(SubscriptionStatus.Cancelled, subscription.Status);
+    }
+
+    [Fact]
+    public void Cancel_from_PastDue_transitions_to_Cancelled()
+    {
+        var subscription = CreatePastDue();
+        subscription.Cancel(CancellationReason.TooExpensive, Now);
+        Assert.Equal(SubscriptionStatus.Cancelled, subscription.Status);
     }
 }
